@@ -201,6 +201,7 @@ void Postprocessor::processFiles(const Options &opt) {
     badIdxs.reserve(eventEndIdx - eventStartIdx);
     std::unordered_map<TVector3, TrackHandle, TVector3Hash, TVector3Eq>
         clusterMap;
+    clusterMap.reserve((eventEndIdx - eventStartIdx) * 5);
     for (int j = eventStartIdx; j < eventEndIdx; j++) {
       inTree->GetEntry(j);
       for (const auto &hit : *m_trackHitsGlobal) {
