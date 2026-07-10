@@ -84,7 +84,7 @@ class Postprocessor {
  protected:
   /// EPICS meta
   std::size_t m_epicsParity = 0;
-  std::size_t m_epicsPID = 0;
+  std::size_t m_epicsPulseId = 0;
   std::size_t m_epicsDAQNumber = 0;
 
   /// Measurement hits

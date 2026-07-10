@@ -28,6 +28,7 @@ std::vector<std::string> Postprocessor::collectDataPaths(
       // break;
     }
   }
+  std::sort(paths.begin(), paths.end());
 
   // Print debug info
   std::cout << "---------------------------------------------\n";
@@ -57,7 +58,7 @@ Postprocessor::FileHandle Postprocessor::getInFileHandle(
 
   // EPICS meta
   tree->SetBranchAddress("epicsParity", &m_epicsParity);
-  tree->SetBranchAddress("epicsPID", &m_epicsPID);
+  tree->SetBranchAddress("epicsPulseId", &m_epicsPulseId);
   tree->SetBranchAddress("epicsDAQNumber", &m_epicsDAQNumber);
 
   // Measurement hits
