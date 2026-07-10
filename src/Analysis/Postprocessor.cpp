@@ -56,7 +56,11 @@ Postprocessor::FileHandle Postprocessor::getInFileHandle(
     tree = dynamic_cast<TTree *>(chainOwner);
   }
 
-  // EPICS meta
+  // Event meta data
+  tree->SetBranchAddress("eudaqTrgN", &m_eudaqTrgN);
+  tree->SetBranchAddress("eudaqDAQNumber", &m_eudaqDAQNumber);
+  tree->SetBranchAddress("eudaqRunStartTs", &m_eudaqRunStartTs);
+  tree->SetBranchAddress("eudaqRunEndTs", &m_eudaqRunEndTs);
   tree->SetBranchAddress("epicsParity", &m_epicsParity);
   tree->SetBranchAddress("epicsPulseId", &m_epicsPulseId);
   tree->SetBranchAddress("epicsDAQNumber", &m_epicsDAQNumber);
@@ -162,7 +166,6 @@ Postprocessor::getEventRanges(TTree *tree) const {
       }
     }
   }
-  // throw std::runtime_error("ERR");
   tree->SetBranchStatus("*", true);
 
   std::cout << "Total ranges found " << eventRanges.size() << "\n";
