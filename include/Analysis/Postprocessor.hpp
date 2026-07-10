@@ -34,6 +34,10 @@ class Postprocessor {
     std::string outDataPath;
     /// Output data tree name
     std::string outDataTreeName;
+    /// Number of events to process
+    std::size_t events;
+    /// Number of events to skip in the beginning
+    std::size_t skip;
   };
 
   /// @brief run data paths container

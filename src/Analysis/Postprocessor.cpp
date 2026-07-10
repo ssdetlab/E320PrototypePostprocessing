@@ -147,16 +147,9 @@ Postprocessor::getEventRanges(TTree *tree) const {
   std::size_t currentEventId = m_eventId;
   std::size_t currentIdx = 0;
   std::size_t nEntries = tree->GetEntries();
-  std::cout << "ENTRY: " << 0 << ": EVENT ID -- " << m_eventId << "\n";
   for (std::size_t i = 1; i < nEntries; i++) {
     tree->GetEntry(i);
-    std::cout << "ENTRY: " << i << ": CURRENT EVENT ID -- " << currentEventId
-              << ", EVENT ID -- " << m_eventId << "\n";
-    std::cout << "IS NEW EVENT ID: " << (m_eventId != currentEventId) << "\n";
-    std::cout << "IS THE END: " << (i == nEntries - 1) << "\n";
     if (m_eventId != currentEventId || i == nEntries - 1) {
-      std::cout << "NEXT EVENT ID FOUND\n";
-      std::cout << "RANGE: " << currentIdx << " -- " << i - 1 << "\n";
       if (i != nEntries - 1) {
         eventRanges.push_back({currentIdx, i});
         currentIdx = i;
@@ -193,8 +186,10 @@ void Postprocessor::processFiles(const Options &opt) {
 
   // Process events
   std::size_t nRanges = eventRanges.size();
-  for (std::size_t i = 0; i < nRanges; i++) {
-    auto [startIdx, endIdx] = eventRanges.at(i);
+  std::size_t startIdx = opt.skip;
+  std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
+  for (std::size_t i = startIdx; i < endIdx; i++) {
+    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
 
     inTree->SetBranchStatus("*", false);
     inTree->SetBranchStatus("trackHitsGlobal", true);
@@ -203,10 +198,10 @@ void Postprocessor::processFiles(const Options &opt) {
     // Go over the hits and indetify the best chi2
     // track passing through each of them
     std::unordered_set<int> badIdxs;
-    badIdxs.reserve(endIdx - startIdx);
+    badIdxs.reserve(eventEndIdx - eventStartIdx);
     std::unordered_map<TVector3, TrackHandle, TVector3Hash, TVector3Eq>
         clusterMap;
-    for (int j = startIdx; j < endIdx; j++) {
+    for (int j = eventStartIdx; j < eventEndIdx; j++) {
       inTree->GetEntry(j);
       for (const auto &hit : *m_trackHitsGlobal) {
         auto &mapEntry = clusterMap[hit];
