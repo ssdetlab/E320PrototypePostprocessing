@@ -38,8 +38,8 @@ class Postprocessor {
 
   /// @brief preprocessing options struct
   struct Options {
-    /// Data directory path
-    std::string inDataDir;
+    /// Data directory/file path
+    std::string inPath;
     /// Data tree name
     std::string inDataTreeName;
     /// Output directory path

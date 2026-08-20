@@ -12,13 +12,13 @@
 
 std::vector<std::string> Postprocessor::collectDataPaths(
     const Options &opt) const {
-  std::cout << "Collecting data paths from\n" << opt.inDataDir << "\n";
+  std::cout << "Collecting data paths from\n" << opt.inPath << "\n";
 
   // Collect paths
   std::vector<std::string> paths;
   std::size_t idx = 0;
   for (const auto &entry :
-       std::filesystem::recursive_directory_iterator(opt.inDataDir)) {
+       std::filesystem::recursive_directory_iterator(opt.inPath)) {
     if (!entry.is_regular_file() || entry.path().extension() != ".root") {
       continue;
     }
@@ -216,7 +216,9 @@ Postprocessor::FileHandle Postprocessor::getInFileHandle(
 }
 
 void Postprocessor::processFiles(const Options &opt) {
-  auto paths = collectDataPaths(opt);
+  std::vector<std::string> paths = opt.inPath.ends_with(".root")
+                                       ? std::vector({opt.inPath})
+                                       : collectDataPaths(opt);
 
   // Get data tree
   auto [inFile, inChain, dataTree, selectionTree, eventRanges] =
