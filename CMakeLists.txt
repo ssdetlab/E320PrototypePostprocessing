@@ -18,20 +18,67 @@ find_package(
 )
 
 add_executable(
-    dataPostprocessing 
-    dataPostprocessor.cpp
+    removeSharedClusters 
+    removeSharedClusters.cpp
+)
+
+add_executable(
+    testClusterSharing 
+    testClusterSharing.cpp
+)
+
+add_executable(
+    sampleMagnets 
+    sampleMagnets.cpp
 )
 
 target_include_directories(
-   dataPostprocessing
+   removeSharedClusters
    PUBLIC
    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
+target_include_directories(
+   testClusterSharing
+   PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+target_include_directories(
+   sampleMagnets
+   PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+
 add_subdirectory(src/Analysis)
 
 target_link_libraries(
-    dataPostprocessing
+    removeSharedClusters
+    PUBLIC
+    ROOT::Core
+    ROOT::Hist
+    ROOT::HistPainter
+    ROOT::RIO
+    ROOT::Tree
+    ROOT::Physics
+    /home/romanurmanov/work/TrackingPipeline/ActsTrackingPipeline_build/lib/libSimEventDict.so
+)
+
+target_link_libraries(
+    testClusterSharing
+    PUBLIC
+    ROOT::Core
+    ROOT::Hist
+    ROOT::HistPainter
+    ROOT::RIO
+    ROOT::Tree
+    ROOT::Physics
+    /home/romanurmanov/work/TrackingPipeline/ActsTrackingPipeline_build/lib/libSimEventDict.so
+)
+
+target_link_libraries(
+    sampleMagnets
     PUBLIC
     ROOT::Core
     ROOT::Hist
