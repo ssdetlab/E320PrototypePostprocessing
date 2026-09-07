@@ -4,7 +4,9 @@
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -69,25 +71,28 @@ Postprocessor::FileHandle Postprocessor::getInFileHandle(
   // Get event ranges
   std::cout << "Getting event ranges\n";
   std::vector<std::pair<std::uint32_t, std::uint32_t>> eventRanges;
+  std::unordered_set<std::size_t> eventIds;
   dataTree->GetEntry(0);
   std::size_t currentEventId = m_eventId;
   std::size_t currentIdx = 0;
-  for (std::size_t i = 0; i < nEntries; i++) {
+  for (std::size_t i = 0; i < nEntries - 1; i++) {
     dataTree->GetEntry(i);
-    if (m_eventId != currentEventId || i == nEntries - 1) {
-      if (i != nEntries - 1) {
-        eventRanges.push_back({currentIdx, i});
-        currentIdx = i;
-        currentEventId = m_eventId;
-      } else {
-        eventRanges.push_back({currentIdx, i + 1});
-        currentIdx = i;
-        currentEventId = m_eventId;
-      }
+    eventIds.insert(m_eventId);
+    if (m_eventId != currentEventId) {
+      eventRanges.push_back({currentIdx, i});
+      currentIdx = i;
+      currentEventId = m_eventId;
+    }
+    if (i % 100000 == 0) {
+      std::cout << i << "/" << nEntries << "\n";
     }
   }
+  eventRanges.push_back({currentIdx, nEntries});
+  std::cout << "Entries " << nEntries << "\n";
+  std::cout << "Unique event IDs " << eventIds.size() << "\n";
   std::cout << "Total ranges found " << eventRanges.size() << "\n";
   std::cout << "\n\n\n\n";
+  // throw std::runtime_error("ERR");
 
   // Event meta data
   dataTree->SetBranchAddress("eudaqTrgN", &m_eudaqTrgN);
@@ -208,14 +213,18 @@ Postprocessor::FileHandle Postprocessor::getInFileHandle(
   // Charge
   dataTree->SetBranchAddress("charge", &m_charge);
 
+  dataTree->SetBranchAddress("xCount", &m_xCount);
+
   // Set selection tree branches
+  selectionTree->SetBranchAddress("xCorrectorStrength", &m_xCorrectorStrength);
+  selectionTree->SetBranchAddress("dipoleStrength", &m_dipoleStrength);
   selectionTree->SetBranchAddress("trackHitsGlobal", &m_trackHitsGlobal);
   selectionTree->SetBranchAddress("chi2Smoothed", &m_chi2Smoothed);
 
   return {file, chainOwner, dataTree, selectionTree, eventRanges};
 }
 
-void Postprocessor::processFiles(const Options &opt) {
+void Postprocessor::removeSharedClusters(const Options &opt) {
   std::vector<std::string> paths = opt.inPath.ends_with(".root")
                                        ? std::vector({opt.inPath})
                                        : collectDataPaths(opt);
@@ -223,6 +232,7 @@ void Postprocessor::processFiles(const Options &opt) {
   // Get data tree
   auto [inFile, inChain, dataTree, selectionTree, eventRanges] =
       getInFileHandle(opt.inDataTreeName, paths);
+  std::size_t nRanges = eventRanges.size();
 
   // Initilize output file
   TFile *outFile = new TFile(opt.outDataPath.c_str(), "RECREATE");
@@ -230,8 +240,9 @@ void Postprocessor::processFiles(const Options &opt) {
   outTree = dataTree->CloneTree(0);
   dataTree->CopyAddresses(outTree);
 
-  // Process events
-  std::size_t nRanges = eventRanges.size();
+  // Remove cluster sharing
+  std::set<int> uniqueTrackIdxs;
+
   std::size_t startIdx = opt.skip;
   std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
   for (std::size_t i = startIdx; i < endIdx; i++) {
@@ -258,22 +269,146 @@ void Postprocessor::processFiles(const Options &opt) {
     }
 
     // Get the unique track indices
-    std::set<int> trackIdxs;
     for (const auto &[hit, track] : clusterMap) {
-      const auto &[idx, chi2] = track;
+      const auto &[idx, chi2, magId] = track;
       if (badIdxs.contains(idx)) {
         continue;
       }
-      trackIdxs.insert(idx);
+      uniqueTrackIdxs.insert(idx);
     }
-    // TTree IO is faster with sequential readout
-    for (auto j : trackIdxs) {
-      dataTree->GetEntry(j);
-      outTree->Fill();
-    }
-    if (i % 10 == 0) {
+    if (i % 1000 == 0) {
       std::cout << i << "/" << nRanges << "\n";
     }
+  }
+
+  // Fill the tree
+  for (int j : uniqueTrackIdxs) {
+    dataTree->GetEntry(j);
+    outTree->Fill();
+  }
+
+  outFile->Write();
+  outFile->Close();
+}
+
+void Postprocessor::testClusterSharing(const Options &opt) {
+  std::vector<std::string> paths = opt.inPath.ends_with(".root")
+                                       ? std::vector({opt.inPath})
+                                       : collectDataPaths(opt);
+
+  // Get data tree
+  auto [inFile, inChain, dataTree, selectionTree, eventRanges] =
+      getInFileHandle(opt.inDataTreeName, paths);
+  std::size_t nRanges = eventRanges.size();
+
+  std::size_t startIdx = opt.skip;
+  std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
+  for (std::size_t i = startIdx; i < endIdx; i++) {
+    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
+
+    for (int j = eventStartIdx; j < eventEndIdx - 1; j++) {
+      selectionTree->GetEntry(j);
+      auto hitsJ = *m_trackHitsGlobal;
+      for (int k = j + 1; k < eventEndIdx; k++) {
+        selectionTree->GetEntry(k);
+        auto hitsK = *m_trackHitsGlobal;
+        for (const auto &hitJ : hitsJ) {
+          for (const auto &hitK : hitsK) {
+            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" << hitJ.X()
+            //           << " " << hitJ.Y() << " " << hitJ.Z() << "], hitK = ["
+            //           << hitJ.X() << " " << hitJ.Y() << " " << hitJ.Z()
+            //           << "]\n";
+            if (hitJ == hitK) {
+              throw std::runtime_error("ERR");
+            }
+          }
+        }
+      }
+    }
+    if (i % 1000 == 0) {
+      std::cout << i << "/" << nRanges << "\n";
+    }
+  }
+}
+
+void Postprocessor::sampleMagnets(const Options &opt) {
+  std::vector<std::string> paths = opt.inPath.ends_with(".root")
+                                       ? std::vector({opt.inPath})
+                                       : collectDataPaths(opt);
+
+  // Get data tree
+  auto [inFile, inChain, dataTree, selectionTree, eventRanges] =
+      getInFileHandle(opt.inDataTreeName, paths);
+  std::size_t nRanges = eventRanges.size();
+
+  // Initilize output file
+  TFile *outFile = new TFile(opt.outDataPath.c_str(), "RECREATE");
+  TTree *outTree = nullptr;
+  outTree = dataTree->CloneTree(0);
+  dataTree->CopyAddresses(outTree);
+
+  // Set up magnet ranges
+  std::vector<std::pair<double, double>> dipoleRanges{
+      {-0.23, -0.21}, {-0.21, -0.19}, {-0.18, -0.17}, {-0.16, -0.15}};
+
+  std::vector<std::pair<double, double>> xcorRanges{
+      {-0.054, -0.050}, {-0.018, -0.014}, {0.024, 0.027}, {0.027, 0.030}};
+
+  // Count mag filed configurations
+  std::unordered_map<std::size_t, std::set<int>> magnetMap;
+
+  std::size_t startIdx = opt.skip;
+  std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
+  for (std::size_t i = startIdx; i < endIdx; i++) {
+    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
+
+    for (int j = eventStartIdx; j < eventEndIdx; j++) {
+      selectionTree->GetEntry(j);
+
+      std::size_t magId = 0;
+      for (std::size_t j = 0; j < dipoleRanges.size(); j++) {
+        const auto &[low, high] = dipoleRanges.at(j);
+        if (m_dipoleStrength >= low && m_dipoleStrength <= high) {
+          magId = 10 * j;
+        }
+      }
+      for (std::size_t j = 0; j < xcorRanges.size(); j++) {
+        const auto &[low, high] = xcorRanges.at(j);
+        if (m_xCorrectorStrength >= low && m_xCorrectorStrength <= high) {
+          magId += j;
+        }
+      }
+
+      magnetMap[magId].insert(j);
+    }
+
+    if (i % 1000 == 0) {
+      std::cout << i << "/" << nRanges << "\n";
+    }
+  }
+
+  std::size_t minSize = std::numeric_limits<std::size_t>::max();
+  for (const auto &[magId, idxs] : magnetMap) {
+    std::size_t currentSize = idxs.size();
+    if (currentSize < minSize) {
+      minSize = currentSize;
+    }
+  }
+
+  // Fill the tree
+  for (const auto &[magId, idxs] : magnetMap) {
+    std::cout << magId << ": " << idxs.size() << "\n";
+    std::size_t count = 0;
+    for (int j : idxs) {
+      dataTree->GetEntry(j);
+      outTree->Fill();
+
+      count++;
+      if (count == minSize) {
+        break;
+      }
+    }
+    std::cout << count << "\n";
   }
 
   outFile->Write();

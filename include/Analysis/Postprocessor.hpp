@@ -34,6 +34,7 @@ class Postprocessor {
   struct TrackHandle {
     int treeIdx = -1;
     double chi2 = std::numeric_limits<double>::max();
+    std::size_t magId = 0;
   };
 
   /// @brief preprocessing options struct
@@ -68,10 +69,17 @@ class Postprocessor {
     std::size_t stop = 0;
   };
 
-  /// @brief Run data preprocessing
+  /// @brief Run shared clusters removal
   ///
   /// @param opt preprocessing options
-  void processFiles(const Options& opt);
+  void removeSharedClusters(const Options& opt);
+
+  void testClusterSharing(const Options& opt);
+
+  /// @brief Run magnet subsampling
+  ///
+  /// @param opt preprocessing options
+  void sampleMagnets(const Options& opt);
 
  private:
   /// @brief collect run data paths for a collection of runs
@@ -212,4 +220,7 @@ class Postprocessor {
 
   /// Charge
   int m_charge = 0;
+
+  // HT cell intersections count
+  std::size_t m_xCount = 0;
 };
