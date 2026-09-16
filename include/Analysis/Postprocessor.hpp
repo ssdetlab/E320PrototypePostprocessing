@@ -1,43 +1,33 @@
 #pragma once
 
 #include <cstddef>
+#include <set>
 #include <string>
 #include <vector>
 
-#include "TChain.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 #include "TMatrixD.h"
 #include "TTree.h"
 #include "TVector2.h"
 #include "TVector3.h"
 #include "TVectorD.h"
+#include "detail/FileHandle.hpp"
 
 /// @brief class handling the E320 data postprocessing
 class Postprocessor {
  public:
-  /// @brief File handle struct
-  struct FileHandle {
-    /// File pointer
-    TFile* file;
-    /// Chain owner pointer
-    TChain* chainOwner;
-    /// Tree storing the whole track data
-    TTree* dataTree;
-    /// Tree storing selection branches
-    TTree* selectionTree;
-    /// Ranges of the events
-    std::vector<std::pair<std::uint32_t, std::uint32_t>> eventRanges;
+  /// @brief De-duplication algorithms enum
+  enum DeduplictionAlgorithm : int {
+    /// Select a random set of tracks
+    /// that do not share any clusters
+    Random = 0,
+    /// Select the tracks that are the
+    /// best chi2 tracks for every cluster
+    /// contained in the track
+    FullBestChi2 = 1
   };
 
-  /// @brief Track handle struct
-  struct TrackHandle {
-    int treeIdx = -1;
-    double chi2 = std::numeric_limits<double>::max();
-    std::size_t magId = 0;
-  };
-
-  /// @brief preprocessing options struct
+  /// @brief postprocessing options struct
   struct Options {
     /// Data directory/file path
     std::string inPath;
@@ -51,40 +41,29 @@ class Postprocessor {
     std::size_t events;
     /// Number of events to skip in the beginning
     std::size_t skip;
-  };
-
-  /// @brief run data paths container
-  struct PathCollection {
-    /// Prefix of the run files
-    std::string runPrefix = "";
-    /// Parent path of the run files
-    std::string parentPath = "";
-    /// Collection of the run files
-    std::vector<std::string> inPaths{};
-    /// Output path
-    std::string outPath = "";
-    /// Number of events to skip in the beginning
-    std::size_t skip = 0;
-    /// Number of events to skip in the end
-    std::size_t stop = 0;
+    /// Deduplication algorithm
+    DeduplictionAlgorithm deduplictionAlgo;
   };
 
   /// @brief Run shared clusters removal
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   void removeSharedClusters(const Options& opt);
 
+  /// @brief Check that no tracks in a sample share clusters
+  ///
+  /// @param opt postprocessing options
   void testClusterSharing(const Options& opt);
 
   /// @brief Run magnet subsampling
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   void sampleMagnets(const Options& opt);
 
  private:
   /// @brief collect run data paths for a collection of runs
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   ///
   /// @return map of run prefix to its path collection
   std::vector<std::string> collectDataPaths(const Options& opt) const;

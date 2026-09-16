@@ -1,16 +1,22 @@
 #include "Analysis/Postprocessor.hpp"
 
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <limits>
-#include <set>
+#include <memory>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "Analysis/FullBestChi2DeduplicationAlgorithm.hpp"
+#include "Analysis/IDeduplicationAlgorithm.hpp"
+#include "Analysis/RandomDeduplicationAlgorithm.hpp"
 #include "detail/TVector3Hash.hpp"
+#include "detail/TrackHandle.hpp"
 
 std::vector<std::string> Postprocessor::collectDataPaths(
     const Options &opt) const {
@@ -42,7 +48,7 @@ std::vector<std::string> Postprocessor::collectDataPaths(
   return paths;
 };
 
-Postprocessor::FileHandle Postprocessor::getInFileHandle(
+FileHandle Postprocessor::getInFileHandle(
     const std::string &treeName, const std::vector<std::string> &paths) {
   TFile *file = nullptr;
   TTree *dataTree = nullptr;
@@ -241,45 +247,23 @@ void Postprocessor::removeSharedClusters(const Options &opt) {
   dataTree->CopyAddresses(outTree);
 
   // Remove cluster sharing
-  std::set<int> uniqueTrackIdxs;
-
   std::size_t startIdx = opt.skip;
   std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
-  for (std::size_t i = startIdx; i < endIdx; i++) {
-    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
 
-    // Go over the hits and indetify the best chi2
-    // track passing through each of them
-    std::unordered_set<int> badIdxs;
-    badIdxs.reserve(eventEndIdx - eventStartIdx);
-    std::unordered_map<TVector3, TrackHandle, TVector3Hash, TVector3Eq>
-        clusterMap;
-    clusterMap.reserve((eventEndIdx - eventStartIdx) * 5);
-    for (int j = eventStartIdx; j < eventEndIdx; j++) {
-      selectionTree->GetEntry(j);
-      for (const auto &hit : *m_trackHitsGlobal) {
-        auto &mapEntry = clusterMap[hit];
-        if (mapEntry.chi2 > m_chi2Smoothed) {
-          badIdxs.insert(mapEntry.treeIdx);
-          mapEntry = {j, m_chi2Smoothed};
-        } else {
-          badIdxs.insert(j);
-        }
-      }
-    }
-
-    // Get the unique track indices
-    for (const auto &[hit, track] : clusterMap) {
-      const auto &[idx, chi2, magId] = track;
-      if (badIdxs.contains(idx)) {
-        continue;
-      }
-      uniqueTrackIdxs.insert(idx);
-    }
-    if (i % 1000 == 0) {
-      std::cout << i << "/" << nRanges << "\n";
-    }
+  std::unique_ptr<IDeduplicationAlgorithm> deduplicationAlgo = nullptr;
+  switch (opt.deduplictionAlgo) {
+    case DeduplictionAlgorithm::Random:
+      deduplicationAlgo = std::make_unique<RandomDeduplicationAlgorithm>(
+          selectionTree, m_trackHitsGlobal);
+      break;
+    case DeduplictionAlgorithm::FullBestChi2:
+      deduplicationAlgo = std::make_unique<FullBestChi2DeduplicationAlgorithm>(
+          selectionTree, &m_chi2Smoothed, m_trackHitsGlobal);
+      break;
   }
+
+  std::set<int> uniqueTrackIdxs =
+      deduplicationAlgo->operator()(startIdx, endIdx, eventRanges);
 
   // Fill the tree
   for (int j : uniqueTrackIdxs) {
@@ -314,7 +298,8 @@ void Postprocessor::testClusterSharing(const Options &opt) {
         auto hitsK = *m_trackHitsGlobal;
         for (const auto &hitJ : hitsJ) {
           for (const auto &hitK : hitsK) {
-            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" << hitJ.X()
+            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" <<
+            // hitJ.X()
             //           << " " << hitJ.Y() << " " << hitJ.Z() << "], hitK = ["
             //           << hitJ.X() << " " << hitJ.Y() << " " << hitJ.Z()
             //           << "]\n";
