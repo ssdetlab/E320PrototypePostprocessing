@@ -1,8 +1,10 @@
 #include "Analysis/RandomDeduplicationAlgorithm.hpp"
 
 #include <chrono>
+#include <cstddef>
 #include <iostream>
 #include <random>
+#include <vector>
 
 #include "TVector3.h"
 #include "detail/TVector3Hash.hpp"
@@ -25,6 +27,13 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
   for (std::size_t i = startIdx; i < endIdx; i++) {
     auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
 
+    std::unordered_map<std::size_t, std::vector<TVector3>> tracks;
+    tracks.reserve(eventEndIdx - eventStartIdx);
+    for (std::size_t idx = eventStartIdx; idx < eventEndIdx; idx++) {
+      m_selectionTree->GetEntry(idx);
+      tracks.insert({idx, *m_trackHitsGlobal});
+    }
+
     std::vector<int> trackIdxs;
     trackIdxs.reserve(eventEndIdx - eventStartIdx);
     for (int j = eventStartIdx; j < eventEndIdx; ++j) {
@@ -34,10 +43,10 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
 
     std::unordered_set<TVector3, TVector3Hash, TVector3Eq> usedClusters;
     for (const int j : trackIdxs) {
-      m_selectionTree->GetEntry(j);
+      auto trackHitsGlobal = tracks.at(j);
 
       bool hasUsed = false;
-      for (const auto &hit : *m_trackHitsGlobal) {
+      for (const auto &hit : trackHitsGlobal) {
         if (usedClusters.contains(hit)) {
           hasUsed = true;
           break;
@@ -48,7 +57,7 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
       }
 
       uniqueTrackIdxs.insert(j);
-      for (const auto &hit : *m_trackHitsGlobal) {
+      for (const auto &hit : trackHitsGlobal) {
         usedClusters.insert(hit);
       }
     }
