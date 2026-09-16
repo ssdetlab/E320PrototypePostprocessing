@@ -18,8 +18,13 @@ find_package(
 )
 
 add_executable(
-    removeSharedClusters 
-    removeSharedClusters.cpp
+    removeSharedClustersData 
+    removeSharedClustersData.cpp
+)
+
+add_executable(
+    removeSharedClustersSim 
+    removeSharedClustersSim.cpp
 )
 
 add_executable(
@@ -33,7 +38,13 @@ add_executable(
 )
 
 target_include_directories(
-   removeSharedClusters
+   removeSharedClustersData
+   PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+target_include_directories(
+   removeSharedClustersSim
    PUBLIC
    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
@@ -50,11 +61,22 @@ target_include_directories(
    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-
 add_subdirectory(src/Analysis)
 
 target_link_libraries(
-    removeSharedClusters
+    removeSharedClustersData
+    PUBLIC
+    ROOT::Core
+    ROOT::Hist
+    ROOT::HistPainter
+    ROOT::RIO
+    ROOT::Tree
+    ROOT::Physics
+    /home/romanurmanov/work/TrackingPipeline/ActsTrackingPipeline_build/lib/libSimEventDict.so
+)
+
+target_link_libraries(
+    removeSharedClustersSim
     PUBLIC
     ROOT::Core
     ROOT::Hist

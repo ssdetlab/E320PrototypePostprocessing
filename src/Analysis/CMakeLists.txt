@@ -1,8 +1,19 @@
 target_sources(
-    removeSharedClusters
+    removeSharedClustersData
     PRIVATE
     Postprocessor.cpp
     SimPostprocessor.cpp
+    RandomDeduplicationAlgorithm.cpp
+    FullBestChi2DeduplicationAlgorithm.cpp
+)
+
+target_sources(
+    removeSharedClustersSim
+    PRIVATE
+    Postprocessor.cpp
+    SimPostprocessor.cpp
+    RandomDeduplicationAlgorithm.cpp
+    FullBestChi2DeduplicationAlgorithm.cpp
 )
 
 target_sources(
@@ -10,6 +21,8 @@ target_sources(
     PRIVATE
     Postprocessor.cpp
     SimPostprocessor.cpp
+    RandomDeduplicationAlgorithm.cpp
+    FullBestChi2DeduplicationAlgorithm.cpp
 )
 
 target_sources(
@@ -17,4 +30,6 @@ target_sources(
     PRIVATE
     Postprocessor.cpp
     SimPostprocessor.cpp
+    RandomDeduplicationAlgorithm.cpp
+    FullBestChi2DeduplicationAlgorithm.cpp
 )
