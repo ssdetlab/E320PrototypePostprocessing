@@ -9,7 +9,10 @@
 #include <string>
 #include <vector>
 
-#include "detail/TVector3Hash.hpp"
+#include "Analysis/FullBestChi2DeduplicationAlgorithm.hpp"
+#include "Analysis/IDeduplicationAlgorithm.hpp"
+#include "Analysis/RandomDeduplicationAlgorithm.hpp"
+#include "detail/FileHandle.hpp"
 
 std::vector<std::string> SimPostprocessor::collectDataPaths(
     const Options &opt) const {
@@ -41,7 +44,7 @@ std::vector<std::string> SimPostprocessor::collectDataPaths(
   return paths;
 };
 
-SimPostprocessor::FileHandle SimPostprocessor::getInFileHandle(
+FileHandle SimPostprocessor::getInFileHandle(
     const std::string &treeName, const std::vector<std::string> &paths) {
   TFile *file = nullptr;
   TTree *dataTree = nullptr;
@@ -294,45 +297,23 @@ void SimPostprocessor::removeSharedClusters(const Options &opt) {
   dataTree->CopyAddresses(outTree);
 
   // Remove cluster sharing
-  std::set<int> uniqueTrackIdxs;
-
   std::size_t startIdx = opt.skip;
   std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
-  for (std::size_t i = startIdx; i < endIdx; i++) {
-    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
 
-    // Go over the hits and indetify the best chi2
-    // track passing through each of them
-    std::unordered_set<int> badIdxs;
-    badIdxs.reserve(eventEndIdx - eventStartIdx);
-    std::unordered_map<TVector3, TrackHandle, TVector3Hash, TVector3Eq>
-        clusterMap;
-    clusterMap.reserve((eventEndIdx - eventStartIdx) * 5);
-    for (int j = eventStartIdx; j < eventEndIdx; j++) {
-      selectionTree->GetEntry(j);
-      for (const auto &hit : *m_trackHitsGlobal) {
-        auto &mapEntry = clusterMap[hit];
-        if (mapEntry.chi2 > m_chi2Smoothed) {
-          badIdxs.insert(mapEntry.treeIdx);
-          mapEntry = {j, m_chi2Smoothed};
-        } else {
-          badIdxs.insert(j);
-        }
-      }
-    }
-
-    // Get the unique track indices
-    for (const auto &[hit, track] : clusterMap) {
-      const auto &[idx, chi2, magId] = track;
-      if (badIdxs.contains(idx)) {
-        continue;
-      }
-      uniqueTrackIdxs.insert(idx);
-    }
-    if (i % 1000 == 0) {
-      std::cout << i << "/" << nRanges << "\n";
-    }
+  std::unique_ptr<IDeduplicationAlgorithm> deduplicationAlgo = nullptr;
+  switch (opt.deduplictionAlgo) {
+    case DeduplictionAlgorithm::Random:
+      deduplicationAlgo = std::make_unique<RandomDeduplicationAlgorithm>(
+          selectionTree, m_trackHitsGlobal);
+      break;
+    case DeduplictionAlgorithm::FullBestChi2:
+      deduplicationAlgo = std::make_unique<FullBestChi2DeduplicationAlgorithm>(
+          selectionTree, &m_chi2Smoothed, m_trackHitsGlobal);
+      break;
   }
+
+  std::set<int> uniqueTrackIdxs =
+      deduplicationAlgo->operator()(startIdx, endIdx, eventRanges);
 
   // Fill the tree
   for (int j : uniqueTrackIdxs) {
@@ -426,4 +407,45 @@ void SimPostprocessor::sampleMagnets(const Options &opt) {
 
   outFile->Write();
   outFile->Close();
+}
+
+void SimPostprocessor::testClusterSharing(const Options &opt) {
+  std::vector<std::string> paths = opt.inPath.ends_with(".root")
+                                       ? std::vector({opt.inPath})
+                                       : collectDataPaths(opt);
+
+  // Get data tree
+  auto [inFile, inChain, dataTree, selectionTree, eventRanges] =
+      getInFileHandle(opt.inDataTreeName, paths);
+  std::size_t nRanges = eventRanges.size();
+
+  std::size_t startIdx = opt.skip;
+  std::size_t endIdx = std::min(opt.skip + opt.events, nRanges);
+  for (std::size_t i = startIdx; i < endIdx; i++) {
+    auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
+
+    for (int j = eventStartIdx; j < eventEndIdx - 1; j++) {
+      selectionTree->GetEntry(j);
+      auto hitsJ = *m_trackHitsGlobal;
+      for (int k = j + 1; k < eventEndIdx; k++) {
+        selectionTree->GetEntry(k);
+        auto hitsK = *m_trackHitsGlobal;
+        for (const auto &hitJ : hitsJ) {
+          for (const auto &hitK : hitsK) {
+            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" <<
+            // hitJ.X()
+            //           << " " << hitJ.Y() << " " << hitJ.Z() << "], hitK = ["
+            //           << hitJ.X() << " " << hitJ.Y() << " " << hitJ.Z()
+            //           << "]\n";
+            if (hitJ == hitK) {
+              throw std::runtime_error("ERR");
+            }
+          }
+        }
+      }
+    }
+    if (i % 1000 == 0) {
+      std::cout << i << "/" << nRanges << "\n";
+    }
+  }
 }
