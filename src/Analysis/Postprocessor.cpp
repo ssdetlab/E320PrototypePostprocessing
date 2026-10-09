@@ -7,7 +7,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <random>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -15,8 +14,6 @@
 #include "Analysis/FullBestChi2DeduplicationAlgorithm.hpp"
 #include "Analysis/IDeduplicationAlgorithm.hpp"
 #include "Analysis/RandomDeduplicationAlgorithm.hpp"
-#include "detail/TVector3Hash.hpp"
-#include "detail/TrackHandle.hpp"
 
 std::vector<std::string> Postprocessor::collectDataPaths(
     const Options &opt) const {
@@ -100,13 +97,25 @@ FileHandle Postprocessor::getInFileHandle(
   std::cout << "\n\n\n\n";
   // throw std::runtime_error("ERR");
 
-  // Event meta data
+  // EUDAQ trigger ID
   dataTree->SetBranchAddress("eudaqTrgN", &m_eudaqTrgN);
+
+  // EUDAQ DAQ run number
   dataTree->SetBranchAddress("eudaqDAQNumber", &m_eudaqDAQNumber);
+
+  // EUDAQ DAQ run start timestamp
   dataTree->SetBranchAddress("eudaqRunStartTs", &m_eudaqRunStartTs);
+
+  // EUDAQ DAQ run end timestamp
   dataTree->SetBranchAddress("eudaqRunEndTs", &m_eudaqRunEndTs);
+
+  // Event EPICS parity
   dataTree->SetBranchAddress("epicsParity", &m_epicsParity);
+
+  // Event EPICS PID
   dataTree->SetBranchAddress("epicsPulseId", &m_epicsPulseId);
+
+  // Event EPICS DAQ number
   dataTree->SetBranchAddress("epicsDAQNumber", &m_epicsDAQNumber);
 
   // Magnet configuration as seen by track
@@ -131,6 +140,26 @@ FileHandle Postprocessor::getInFileHandle(
 
   // Covariances of the track agnles
   dataTree->SetBranchAddress("trackAngleCovs", &m_trackAngleCovs);
+
+  // Measurements cluster matrices
+  dataTree->SetBranchAddress("trackHitClusterMatrices",
+                             &m_trackHitClusterMatrices);
+
+  // Measurements cluster matrices extents in local X
+  dataTree->SetBranchAddress("trackHitClusterMatrixLengthsX",
+                             &m_trackHitClusterMatrixLengthsX);
+
+  // Measurements cluster matrices extents in local Y
+  dataTree->SetBranchAddress("trackHitClusterMatrixLengthsY",
+                             &m_trackHitClusterMatrixLengthsY);
+
+  // Measurements cluster matrices pixel count
+  dataTree->SetBranchAddress("trackHitClusterMatrixSizes",
+                             &m_trackHitClusterMatrixSizes);
+
+  // Measurements cluster matrices shape IDs
+  dataTree->SetBranchAddress("trackHitClusterMatrixShapeIds",
+                             &m_trackHitClusterMatrixShapeIds);
 
   // Geometry ids of the track hits
   dataTree->SetBranchAddress("geometryIds", &m_geometryIds);
@@ -171,6 +200,9 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("smoothedAngleResiduals",
                              &m_smoothedAngleResiduals);
 
+  dataTree->SetBranchAddress("leaveOneOutHitResiduals",
+                             &m_leaveOneOutHitResiduals);
+
   // KF pulls with respect to the measurements
   dataTree->SetBranchAddress("predictedHitPulls", &m_predictedHitPulls);
   dataTree->SetBranchAddress("filteredHitPulls", &m_filteredHitPulls);
@@ -179,6 +211,16 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("predictedAnglePulls", &m_predictedAnglePulls);
   dataTree->SetBranchAddress("filteredAnglePulls", &m_filteredAnglePulls);
   dataTree->SetBranchAddress("smoothedAnglePulls", &m_smoothedAnglePulls);
+
+  // KF states covariances
+  dataTree->SetBranchAddress("predictedTrackStateCovs",
+                             &m_predictedTrackStateCovs);
+  dataTree->SetBranchAddress("filteredTrackStateCovs",
+                             &m_filteredTrackStateCovs);
+  dataTree->SetBranchAddress("smoothedTrackStateCovs",
+                             &m_smoothedTrackStateCovs);
+  dataTree->SetBranchAddress("leaveOneOutTrackStateCovs",
+                             &m_leaveOneOutTrackStateCovs);
 
   // Guessed bound track parameters
   dataTree->SetBranchAddress("boundTrackParametersGuess",
@@ -219,6 +261,7 @@ FileHandle Postprocessor::getInFileHandle(
   // Charge
   dataTree->SetBranchAddress("charge", &m_charge);
 
+  // HT cell intersections count
   dataTree->SetBranchAddress("xCount", &m_xCount);
 
   // Set selection tree branches
@@ -298,11 +341,6 @@ void Postprocessor::testClusterSharing(const Options &opt) {
         auto hitsK = *m_trackHitsGlobal;
         for (const auto &hitJ : hitsJ) {
           for (const auto &hitK : hitsK) {
-            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" <<
-            // hitJ.X()
-            //           << " " << hitJ.Y() << " " << hitJ.Z() << "], hitK = ["
-            //           << hitJ.X() << " " << hitJ.Y() << " " << hitJ.Z()
-            //           << "]\n";
             if (hitJ == hitK) {
               throw std::runtime_error("ERR");
             }

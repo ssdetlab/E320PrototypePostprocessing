@@ -1,13 +1,11 @@
 #pragma once
 
 #include <cstddef>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "TLorentzVector.h"
 #include "TMatrixD.h"
-#include "TTree.h"
 #include "TVector2.h"
 #include "TVector3.h"
 #include "TVectorD.h"
@@ -121,6 +119,21 @@ class Postprocessor {
   /// Covariances of the track agnles
   std::vector<TMatrixD>* m_trackAngleCovs = nullptr;
 
+  /// Measurements cluster matrices
+  std::vector<TMatrixD>* m_trackHitClusterMatrices = nullptr;
+
+  /// Measurements cluster matrices extents in local X
+  std::vector<std::size_t>* m_trackHitClusterMatrixLengthsX = nullptr;
+
+  /// Measurements cluster matrices extents in local Y
+  std::vector<std::size_t>* m_trackHitClusterMatrixLengthsY = nullptr;
+
+  /// Measurements cluster matrices pixel count
+  std::vector<std::size_t>* m_trackHitClusterMatrixSizes = nullptr;
+
+  /// Measurements cluster matrices shape IDs
+  std::vector<std::size_t>* m_trackHitClusterMatrixShapeIds = nullptr;
+
   /// Geometry ids of the track hits
   std::vector<std::size_t>* m_geometryIds = nullptr;
 
@@ -148,6 +161,8 @@ class Postprocessor {
   std::vector<TVector2>* m_filteredAngleResiduals = nullptr;
   std::vector<TVector2>* m_smoothedAngleResiduals = nullptr;
 
+  std::vector<TVector2>* m_leaveOneOutHitResiduals = nullptr;
+
   /// KF pulls with respect to the measurements
   std::vector<TVector2>* m_predictedHitPulls = nullptr;
   std::vector<TVector2>* m_filteredHitPulls = nullptr;
@@ -156,6 +171,12 @@ class Postprocessor {
   std::vector<TVector2>* m_predictedAnglePulls = nullptr;
   std::vector<TVector2>* m_filteredAnglePulls = nullptr;
   std::vector<TVector2>* m_smoothedAnglePulls = nullptr;
+
+  /// KF states covariances
+  std::vector<TMatrixD>* m_predictedTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_filteredTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_smoothedTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_leaveOneOutTrackStateCovs = nullptr;
 
   /// Guessed bound track parameters
   TVectorD* m_boundTrackParametersGuess = nullptr;
@@ -200,6 +221,6 @@ class Postprocessor {
   /// Charge
   int m_charge = 0;
 
-  // HT cell intersections count
+  /// HT cell intersections count
   std::size_t m_xCount = 0;
 };
