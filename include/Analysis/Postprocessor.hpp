@@ -134,6 +134,10 @@ class Postprocessor {
   /// Measurements cluster matrices shape IDs
   std::vector<std::size_t>* m_trackHitClusterMatrixShapeIds = nullptr;
 
+  /// Measurements cluster matrices pixels
+  std::vector<std::vector<std::pair<std::uint16_t, std::uint16_t>>>*
+      m_trackHitClusterMatrixPixels = nullptr;
+
   /// Geometry ids of the track hits
   std::vector<std::size_t>* m_geometryIds = nullptr;
 

@@ -161,6 +161,10 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("trackHitClusterMatrixShapeIds",
                              &m_trackHitClusterMatrixShapeIds);
 
+  // Measurements cluster matrices pixels
+  dataTree->SetBranchAddress("trackHitClusterMatrixPixels",
+                             &m_trackHitClusterMatrixPixels);
+
   // Geometry ids of the track hits
   dataTree->SetBranchAddress("geometryIds", &m_geometryIds);
 
