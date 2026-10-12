@@ -176,6 +176,9 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("smoothedTrackHitsLocal",
                              &m_smoothedTrackHitsLocal);
 
+  dataTree->SetBranchAddress("leaveOneOutTrackHitsLocal",
+                             &m_leaveOneOutTrackHitsLocal);
+
   // KF predicted track hits in the global frame
   dataTree->SetBranchAddress("predictedTrackHitsGlobal",
                              &m_predictedTrackHitsGlobal);
@@ -183,6 +186,9 @@ FileHandle Postprocessor::getInFileHandle(
                              &m_filteredTrackHitsGlobal);
   dataTree->SetBranchAddress("smoothedTrackHitsGlobal",
                              &m_smoothedTrackHitsGlobal);
+
+  dataTree->SetBranchAddress("leaveOneOutTrackHitsGlobal",
+                           &m_leaveOneOutTrackHitsGlobal);
 
   // KF predicted on surface momenta in the track frame
   dataTree->SetBranchAddress("predictedOnSurfaceMomentum",
@@ -215,6 +221,8 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("predictedAnglePulls", &m_predictedAnglePulls);
   dataTree->SetBranchAddress("filteredAnglePulls", &m_filteredAnglePulls);
   dataTree->SetBranchAddress("smoothedAnglePulls", &m_smoothedAnglePulls);
+
+  dataTree->SetBranchAddress("leaveOneOutHitPulls", &m_leaveOneOutHitPulls);
 
   // KF states covariances
   dataTree->SetBranchAddress("predictedTrackStateCovs",
