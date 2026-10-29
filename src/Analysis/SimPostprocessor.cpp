@@ -96,6 +96,21 @@ FileHandle SimPostprocessor::getInFileHandle(
   std::cout << "\n\n\n\n";
   // throw std::runtime_error("ERR");
 
+  // Quadrupole triplet focuing energy
+  dataTree->SetBranchAddress("quadTripletFocusingEnergy", &m_quadTripletFocusingEnergy);
+
+  // Quadrupole triplet object z
+  dataTree->SetBranchAddress("quadTripletObjectZ", &m_quadTripletObjectZ);
+
+  // Quadrupole triplet image z
+  dataTree->SetBranchAddress("quadTripletImageZ", &m_quadTripletImageZ);
+
+  // Quadrupole triplet M12 transport matrix element
+  dataTree->SetBranchAddress("quadTripletM12", &m_quadTripletM12);
+
+  // Quadrupole triplet M34 transport matrix element
+  dataTree->SetBranchAddress("quadTripletM34", &m_quadTripletM34);
+
   // Magnet configuration as seen by track
   dataTree->SetBranchAddress("quad1Grad", &m_quad1Grad);
   dataTree->SetBranchAddress("quad2Grad", &m_quad2Grad);
@@ -143,6 +158,9 @@ FileHandle SimPostprocessor::getInFileHandle(
   dataTree->SetBranchAddress("smoothedTrackHitsLocal",
                              &m_smoothedTrackHitsLocal);
 
+  dataTree->SetBranchAddress("leaveOneOutTrackHitsLocal",
+                             &m_leaveOneOutTrackHitsLocal);
+
   // KF predicted track hits in the global frame
   dataTree->SetBranchAddress("predictedTrackHitsGlobal",
                              &m_predictedTrackHitsGlobal);
@@ -150,6 +168,9 @@ FileHandle SimPostprocessor::getInFileHandle(
                              &m_filteredTrackHitsGlobal);
   dataTree->SetBranchAddress("smoothedTrackHitsGlobal",
                              &m_smoothedTrackHitsGlobal);
+
+  dataTree->SetBranchAddress("leaveOneOutTrackHitsGlobal",
+                             &m_leaveOneOutTrackHitsGlobal);
 
   // KF predicted on surface momenta in the track frame
   dataTree->SetBranchAddress("predictedOnSurfaceMomentum",
@@ -174,6 +195,9 @@ FileHandle SimPostprocessor::getInFileHandle(
   dataTree->SetBranchAddress("trueSmoothedAngleResiduals",
                              &m_trueSmoothedAngleResiduals);
 
+  dataTree->SetBranchAddress("trueLeaveOneOutHitResiduals",
+                             &m_trueLeaveOneOutHitResiduals);
+
   // KF residuals with respect to the measurements
   dataTree->SetBranchAddress("predictedHitResiduals", &m_predictedHitResiduals);
   dataTree->SetBranchAddress("filteredHitResiduals", &m_filteredHitResiduals);
@@ -185,6 +209,9 @@ FileHandle SimPostprocessor::getInFileHandle(
                              &m_filteredAngleResiduals);
   dataTree->SetBranchAddress("smoothedAngleResiduals",
                              &m_smoothedAngleResiduals);
+
+  dataTree->SetBranchAddress("leaveOneOutHitResiduals",
+                             &m_leaveOneOutHitResiduals);
 
   // KF pulls with respect to the true hits
   dataTree->SetBranchAddress("truePredictedHitPulls", &m_truePredictedHitPulls);
@@ -198,6 +225,9 @@ FileHandle SimPostprocessor::getInFileHandle(
   dataTree->SetBranchAddress("trueSmoothedAnglePulls",
                              &m_trueSmoothedAnglePulls);
 
+  dataTree->SetBranchAddress("trueLeaveOneOutHitPulls",
+                             &m_trueLeaveOneOutHitPulls);
+
   // KF pulls with respect to the measurements
   dataTree->SetBranchAddress("predictedHitPulls", &m_predictedHitPulls);
   dataTree->SetBranchAddress("filteredHitPulls", &m_filteredHitPulls);
@@ -206,6 +236,18 @@ FileHandle SimPostprocessor::getInFileHandle(
   dataTree->SetBranchAddress("predictedAnglePulls", &m_predictedAnglePulls);
   dataTree->SetBranchAddress("filteredAnglePulls", &m_filteredAnglePulls);
   dataTree->SetBranchAddress("smoothedAnglePulls", &m_smoothedAnglePulls);
+
+  dataTree->SetBranchAddress("leaveOneOutHitPulls", &m_leaveOneOutHitPulls);
+
+  // KF states covariances
+  dataTree->SetBranchAddress("predictedTrackStateCovs",
+                             &m_predictedTrackStateCovs);
+  dataTree->SetBranchAddress("filteredTrackStateCovs",
+                             &m_filteredTrackStateCovs);
+  dataTree->SetBranchAddress("smoothedTrackStateCovs",
+                             &m_smoothedTrackStateCovs);
+  dataTree->SetBranchAddress("leaveOneOutTrackStateCovs",
+                             &m_leaveOneOutTrackStateCovs);
 
   // Guessed bound track parameters
   dataTree->SetBranchAddress("boundTrackParametersGuess",
@@ -222,22 +264,22 @@ FileHandle SimPostprocessor::getInFileHandle(
                              &m_boundTrackParametersTruth);
   dataTree->SetBranchAddress("boundTrackCovTruth", &m_boundTrackCovTruth);
 
-  // Initial guess of the momentum at the IP
+  // Initial guess of the momentum at the origin
   dataTree->SetBranchAddress("originMomentumGuess", &m_originMomentumGuess);
 
-  // Initial guess of the vertex at the IP
+  // Initial guess of the vertex at the origin
   dataTree->SetBranchAddress("vertexGuess", &m_vertexGuess);
 
-  // KF predicted momentum at the IP
+  // KF predicted momentum at the origin
   dataTree->SetBranchAddress("originMomentumEst", &m_originMomentumEst);
 
-  // KF predicted vertex at the IP
+  // KF predicted vertex at the origin
   dataTree->SetBranchAddress("vertexEst", &m_vertexEst);
 
-  // True momentum at the IP
+  // True momentum at the origin
   dataTree->SetBranchAddress("originMomentumTruth", &m_originMomentumTruth);
 
-  // True vertex at the IP
+  // True vertex at the origin
   dataTree->SetBranchAddress("vertexTruth", &m_vertexTruth);
 
   // Chi2 of the track with respect ot the measurement
@@ -270,6 +312,9 @@ FileHandle SimPostprocessor::getInFileHandle(
 
   // Charge
   dataTree->SetBranchAddress("charge", &m_charge);
+
+  // HT cell intersections count
+  dataTree->SetBranchAddress("xCount", &m_xCount);
 
   // Set selection tree branches
   selectionTree->SetBranchAddress("xCorrectorStrength", &m_xCorrectorStrength);
@@ -432,11 +477,6 @@ void SimPostprocessor::testClusterSharing(const Options &opt) {
         auto hitsK = *m_trackHitsGlobal;
         for (const auto &hitJ : hitsJ) {
           for (const auto &hitK : hitsK) {
-            // std::cout << "J: " << j << ", K: " << k << ", hitJ = [" <<
-            // hitJ.X()
-            //           << " " << hitJ.Y() << " " << hitJ.Z() << "], hitK = ["
-            //           << hitJ.X() << " " << hitJ.Y() << " " << hitJ.Z()
-            //           << "]\n";
             if (hitJ == hitK) {
               throw std::runtime_error("ERR");
             }

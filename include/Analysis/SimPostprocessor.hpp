@@ -25,7 +25,7 @@ class SimPostprocessor {
     FullBestChi2 = 1
   };
 
-  /// @brief preprocessing options struct
+  /// @brief postprocessing options struct
   struct Options {
     /// Data directory/file path
     std::string inPath;
@@ -45,7 +45,7 @@ class SimPostprocessor {
 
   /// @brief Run shared clusters removal
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   void removeSharedClusters(const Options& opt);
 
   /// @brief Check that no tracks in a sample share clusters
@@ -55,13 +55,13 @@ class SimPostprocessor {
 
   /// @brief Run magnet subsampling
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   void sampleMagnets(const Options& opt);
 
  private:
   /// @brief collect run data paths for a collection of runs
   ///
-  /// @param opt preprocessing options
+  /// @param opt postprocessing options
   ///
   /// @return map of run prefix to its path collection
   std::vector<std::string> collectDataPaths(const Options& opt) const;
@@ -76,6 +76,21 @@ class SimPostprocessor {
                              const std::vector<std::string>& paths);
 
  protected:
+  /// Quadrupole triplet focuing energy
+  double m_quadTripletFocusingEnergy = 0;
+
+  /// Quadrupole triplet object z
+  double m_quadTripletObjectZ = 0;
+
+  /// Quadrupole triplet image z
+  double m_quadTripletImageZ = 0;
+
+  /// Quadrupole triplet M12 transport matrix element
+  double m_quadTripletM12 = 0;
+
+  /// Quadrupole triplet M34 transport matrix element
+  double m_quadTripletM34 = 0;
+
   /// Magnet configuration as seen by track
   double m_quad1Grad = 0;
   double m_quad2Grad = 0;
@@ -118,10 +133,14 @@ class SimPostprocessor {
   std::vector<TVector2>* m_filteredTrackHitsLocal = nullptr;
   std::vector<TVector2>* m_smoothedTrackHitsLocal = nullptr;
 
+  std::vector<TVector2>* m_leaveOneOutTrackHitsLocal = nullptr;
+
   /// KF predicted track hits in the global frame
   std::vector<TVector3>* m_predictedTrackHitsGlobal = nullptr;
   std::vector<TVector3>* m_filteredTrackHitsGlobal = nullptr;
   std::vector<TVector3>* m_smoothedTrackHitsGlobal = nullptr;
+
+  std::vector<TVector3>* m_leaveOneOutTrackHitsGlobal = nullptr;
 
   /// KF predicted on surface momenta in the track frame
   std::vector<TLorentzVector>* m_predictedOnSurfaceMomentum = nullptr;
@@ -137,6 +156,8 @@ class SimPostprocessor {
   std::vector<TVector2>* m_trueFilteredAngleResiduals = nullptr;
   std::vector<TVector2>* m_trueSmoothedAngleResiduals = nullptr;
 
+  std::vector<TVector2>* m_trueLeaveOneOutHitResiduals = nullptr;
+
   /// KF residuals with respect to the measurements
   std::vector<TVector2>* m_predictedHitResiduals = nullptr;
   std::vector<TVector2>* m_filteredHitResiduals = nullptr;
@@ -145,6 +166,8 @@ class SimPostprocessor {
   std::vector<TVector2>* m_predictedAngleResiduals = nullptr;
   std::vector<TVector2>* m_filteredAngleResiduals = nullptr;
   std::vector<TVector2>* m_smoothedAngleResiduals = nullptr;
+
+  std::vector<TVector2>* m_leaveOneOutHitResiduals = nullptr;
 
   /// KF pulls with respect to the true hits
   std::vector<TVector2>* m_truePredictedHitPulls = nullptr;
@@ -155,6 +178,8 @@ class SimPostprocessor {
   std::vector<TVector2>* m_trueFilteredAnglePulls = nullptr;
   std::vector<TVector2>* m_trueSmoothedAnglePulls = nullptr;
 
+  std::vector<TVector2>* m_trueLeaveOneOutHitPulls = nullptr;
+
   /// KF pulls with respect to the measurements
   std::vector<TVector2>* m_predictedHitPulls = nullptr;
   std::vector<TVector2>* m_filteredHitPulls = nullptr;
@@ -163,6 +188,14 @@ class SimPostprocessor {
   std::vector<TVector2>* m_predictedAnglePulls = nullptr;
   std::vector<TVector2>* m_filteredAnglePulls = nullptr;
   std::vector<TVector2>* m_smoothedAnglePulls = nullptr;
+
+  std::vector<TVector2>* m_leaveOneOutHitPulls = nullptr;
+
+  /// KF states covariances
+  std::vector<TMatrixD>* m_predictedTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_filteredTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_smoothedTrackStateCovs = nullptr;
+  std::vector<TMatrixD>* m_leaveOneOutTrackStateCovs = nullptr;
 
   /// Guessed bound track parameters
   TVectorD* m_boundTrackParametersGuess = nullptr;
@@ -230,4 +263,7 @@ class SimPostprocessor {
 
   /// Charge
   int m_charge = 0;
+
+  /// HT cell intersections count
+  std::size_t m_xCount = 0;
 };
