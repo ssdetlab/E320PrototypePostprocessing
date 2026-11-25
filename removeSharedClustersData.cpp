@@ -17,6 +17,7 @@ int main() {
   opt.events = 1e9;
   opt.skip = 0;
   opt.deduplictionAlgo = Postprocessor::DeduplictionAlgorithm::FullBestChi2;
+  opt.ipGeoId = 8;
 
   postprocessor.removeSharedClusters(opt);
 

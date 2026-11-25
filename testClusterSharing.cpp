@@ -26,6 +26,7 @@ int main() {
   opt.outDataTreeName = "fitted-tracks";
   opt.events = 1e9;
   opt.skip = 0;
+  opt.ipGeoId = 8;
 
   postprocessor.testClusterSharing(opt);
 

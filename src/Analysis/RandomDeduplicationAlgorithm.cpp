@@ -10,8 +10,12 @@
 #include "detail/TVector3Hash.hpp"
 
 RandomDeduplicationAlgorithm::RandomDeduplicationAlgorithm(
-    TTree *selectionTree, std::vector<TVector3> *trackHitsGlobal)
-    : m_selectionTree(selectionTree), m_trackHitsGlobal(trackHitsGlobal) {}
+    TTree *selectionTree, std::vector<TVector3> *trackHitsGlobal,
+    std::vector<std::size_t> *geometryIds, std::size_t ipGeoId)
+    : m_selectionTree(selectionTree),
+      m_trackHitsGlobal(trackHitsGlobal),
+      m_geometryIds(geometryIds),
+      m_ipGeoId(ipGeoId) {}
 
 std::set<int> RandomDeduplicationAlgorithm::operator()(
     std::size_t startIdx, std::size_t endIdx,
@@ -31,7 +35,17 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
     tracks.reserve(eventEndIdx - eventStartIdx);
     for (std::size_t idx = eventStartIdx; idx < eventEndIdx; idx++) {
       m_selectionTree->GetEntry(idx);
-      tracks.insert({idx, *m_trackHitsGlobal});
+
+      // Skip the IP measurement shared by all the tracks
+      std::vector<TVector3> trackHits;
+      trackHits.reserve(m_trackHitsGlobal->size());
+      for (std::size_t k = 0; k < m_trackHitsGlobal->size(); k++) {
+        if (m_geometryIds->at(k) == m_ipGeoId) {
+          continue;
+        }
+        trackHits.push_back(m_trackHitsGlobal->at(k));
+      }
+      tracks.insert({idx, trackHits});
     }
 
     std::vector<int> trackIdxs;

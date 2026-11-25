@@ -321,6 +321,7 @@ FileHandle SimPostprocessor::getInFileHandle(
   selectionTree->SetBranchAddress("dipoleStrength", &m_dipoleStrength);
   selectionTree->SetBranchAddress("trackHitsGlobal", &m_trackHitsGlobal);
   selectionTree->SetBranchAddress("chi2Smoothed", &m_chi2Smoothed);
+  selectionTree->SetBranchAddress("geometryIds", &m_geometryIds);
 
   return {file, chainOwner, dataTree, selectionTree, eventRanges};
 }
@@ -349,11 +350,12 @@ void SimPostprocessor::removeSharedClusters(const Options &opt) {
   switch (opt.deduplictionAlgo) {
     case DeduplictionAlgorithm::Random:
       deduplicationAlgo = std::make_unique<RandomDeduplicationAlgorithm>(
-          selectionTree, m_trackHitsGlobal);
+          selectionTree, m_trackHitsGlobal, m_geometryIds, opt.ipGeoId);
       break;
     case DeduplictionAlgorithm::FullBestChi2:
       deduplicationAlgo = std::make_unique<FullBestChi2DeduplicationAlgorithm>(
-          selectionTree, &m_chi2Smoothed, m_trackHitsGlobal);
+          selectionTree, &m_chi2Smoothed, m_trackHitsGlobal, m_geometryIds,
+          opt.ipGeoId);
       break;
   }
 
@@ -472,12 +474,21 @@ void SimPostprocessor::testClusterSharing(const Options &opt) {
     for (int j = eventStartIdx; j < eventEndIdx - 1; j++) {
       selectionTree->GetEntry(j);
       auto hitsJ = *m_trackHitsGlobal;
+      auto geoIdsJ = *m_geometryIds;
       for (int k = j + 1; k < eventEndIdx; k++) {
         selectionTree->GetEntry(k);
         auto hitsK = *m_trackHitsGlobal;
-        for (const auto &hitJ : hitsJ) {
-          for (const auto &hitK : hitsK) {
-            if (hitJ == hitK) {
+        auto geoIdsK = *m_geometryIds;
+        for (std::size_t n = 0; n < hitsJ.size(); n++) {
+          // Skip the IP measurement shared by all the tracks
+          if (geoIdsJ.at(n) == opt.ipGeoId) {
+            continue;
+          }
+          for (std::size_t m = 0; m < hitsK.size(); m++) {
+            if (geoIdsK.at(m) == opt.ipGeoId) {
+              continue;
+            }
+            if (hitsJ.at(n) == hitsK.at(m)) {
               throw std::runtime_error("ERR");
             }
           }
