@@ -69,6 +69,9 @@ FileHandle SimPostprocessor::getInFileHandle(
     throw std::invalid_argument("Missing eventId branch");
   }
   auto nEntries = static_cast<std::size_t>(dataTree->GetEntries());
+  if (nEntries == 0) {
+    throw std::invalid_argument("Empty data tree");
+  }
 
   // Get event ranges
   std::cout << "Getting event ranges\n";
@@ -88,6 +91,15 @@ FileHandle SimPostprocessor::getInFileHandle(
     if (i % 100000 == 0) {
       std::cout << i << "/" << nEntries << "\n";
     }
+  }
+
+  // Check whether the last entry belongs
+  // to the current event or starts a new one
+  dataTree->GetEntry(nEntries - 1);
+  eventIds.insert(m_eventId);
+  if (m_eventId != currentEventId) {
+    eventRanges.push_back({currentIdx, nEntries - 1});
+    currentIdx = nEntries - 1;
   }
   eventRanges.push_back({currentIdx, nEntries});
   std::cout << "Entries " << nEntries << "\n";
