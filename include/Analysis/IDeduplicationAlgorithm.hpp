@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <set>
+#include <utility>
 #include <vector>
 
 /// @brief Interface class for de-duplication algorithms calls

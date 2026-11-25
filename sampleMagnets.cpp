@@ -12,7 +12,6 @@ int main() {
   opt.outDataPath =
       "/home/romanurmanov/work/E320/E320Prototype/E320Prototype_analysis/data/"
       "fitted-tracks-filtered.root";
-  opt.outDataTreeName = "fitted-tracks";
   opt.events = 1e9;
   opt.skip = 0;
 
