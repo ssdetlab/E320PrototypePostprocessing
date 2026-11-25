@@ -160,6 +160,7 @@ class SimPostprocessor {
   std::vector<TVector2>* m_trueSmoothedAngleResiduals = nullptr;
 
   std::vector<TVector2>* m_trueLeaveOneOutHitResiduals = nullptr;
+  std::vector<TVector2>* m_trueLeaveOneOutAngleResiduals = nullptr;
 
   /// KF residuals with respect to the measurements
   std::vector<TVector2>* m_predictedHitResiduals = nullptr;
@@ -171,6 +172,7 @@ class SimPostprocessor {
   std::vector<TVector2>* m_smoothedAngleResiduals = nullptr;
 
   std::vector<TVector2>* m_leaveOneOutHitResiduals = nullptr;
+  std::vector<TVector2>* m_leaveOneOutAngleResiduals = nullptr;
 
   /// KF pulls with respect to the true hits
   std::vector<TVector2>* m_truePredictedHitPulls = nullptr;
@@ -182,6 +184,7 @@ class SimPostprocessor {
   std::vector<TVector2>* m_trueSmoothedAnglePulls = nullptr;
 
   std::vector<TVector2>* m_trueLeaveOneOutHitPulls = nullptr;
+  std::vector<TVector2>* m_trueLeaveOneOutAnglePulls = nullptr;
 
   /// KF pulls with respect to the measurements
   std::vector<TVector2>* m_predictedHitPulls = nullptr;
@@ -193,6 +196,7 @@ class SimPostprocessor {
   std::vector<TVector2>* m_smoothedAnglePulls = nullptr;
 
   std::vector<TVector2>* m_leaveOneOutHitPulls = nullptr;
+  std::vector<TVector2>* m_leaveOneOutAnglePulls = nullptr;
 
   /// KF states covariances
   std::vector<TMatrixD>* m_predictedTrackStateCovs = nullptr;

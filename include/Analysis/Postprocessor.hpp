@@ -100,6 +100,21 @@ class Postprocessor {
   /// Event EPICS DAQ number
   std::size_t m_epicsDAQNumber = 0;
 
+  /// Quadrupole triplet focuing energy
+  double m_quadTripletFocusingEnergy = 0;
+
+  /// Quadrupole triplet object z
+  double m_quadTripletObjectZ = 0;
+
+  /// Quadrupole triplet image z
+  double m_quadTripletImageZ = 0;
+
+  /// Quadrupole triplet M12 transport matrix element
+  double m_quadTripletM12 = 0;
+
+  /// Quadrupole triplet M34 transport matrix element
+  double m_quadTripletM34 = 0;
+
   /// Magnet configuration as seen by track
   double m_quad1Grad = 0;
   double m_quad2Grad = 0;
@@ -173,6 +188,7 @@ class Postprocessor {
   std::vector<TVector2>* m_smoothedAngleResiduals = nullptr;
 
   std::vector<TVector2>* m_leaveOneOutHitResiduals = nullptr;
+  std::vector<TVector2>* m_leaveOneOutAngleResiduals = nullptr;
 
   /// KF pulls with respect to the measurements
   std::vector<TVector2>* m_predictedHitPulls = nullptr;
@@ -184,6 +200,7 @@ class Postprocessor {
   std::vector<TVector2>* m_smoothedAnglePulls = nullptr;
 
   std::vector<TVector2>* m_leaveOneOutHitPulls = nullptr;
+  std::vector<TVector2>* m_leaveOneOutAnglePulls = nullptr;
 
   /// KF states covariances
   std::vector<TMatrixD>* m_predictedTrackStateCovs = nullptr;

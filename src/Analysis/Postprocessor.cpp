@@ -134,6 +134,22 @@ FileHandle Postprocessor::getInFileHandle(
   // Event EPICS DAQ number
   dataTree->SetBranchAddress("epicsDAQNumber", &m_epicsDAQNumber);
 
+  // Quadrupole triplet focuing energy
+  dataTree->SetBranchAddress("quadTripletFocusingEnergy",
+                             &m_quadTripletFocusingEnergy);
+
+  // Quadrupole triplet object z
+  dataTree->SetBranchAddress("quadTripletObjectZ", &m_quadTripletObjectZ);
+
+  // Quadrupole triplet image z
+  dataTree->SetBranchAddress("quadTripletImageZ", &m_quadTripletImageZ);
+
+  // Quadrupole triplet M12 transport matrix element
+  dataTree->SetBranchAddress("quadTripletM12", &m_quadTripletM12);
+
+  // Quadrupole triplet M34 transport matrix element
+  dataTree->SetBranchAddress("quadTripletM34", &m_quadTripletM34);
+
   // Magnet configuration as seen by track
   dataTree->SetBranchAddress("quad1Grad", &m_quad1Grad);
   dataTree->SetBranchAddress("quad2Grad", &m_quad2Grad);
@@ -228,6 +244,8 @@ FileHandle Postprocessor::getInFileHandle(
 
   dataTree->SetBranchAddress("leaveOneOutHitResiduals",
                              &m_leaveOneOutHitResiduals);
+  dataTree->SetBranchAddress("leaveOneOutAngleResiduals",
+                             &m_leaveOneOutAngleResiduals);
 
   // KF pulls with respect to the measurements
   dataTree->SetBranchAddress("predictedHitPulls", &m_predictedHitPulls);
@@ -239,6 +257,7 @@ FileHandle Postprocessor::getInFileHandle(
   dataTree->SetBranchAddress("smoothedAnglePulls", &m_smoothedAnglePulls);
 
   dataTree->SetBranchAddress("leaveOneOutHitPulls", &m_leaveOneOutHitPulls);
+  dataTree->SetBranchAddress("leaveOneOutAnglePulls", &m_leaveOneOutAnglePulls);
 
   // KF states covariances
   dataTree->SetBranchAddress("predictedTrackStateCovs",
