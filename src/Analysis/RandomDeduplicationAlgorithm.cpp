@@ -1,8 +1,11 @@
 #include "Analysis/RandomDeduplicationAlgorithm.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <random>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "TVector3.h"
@@ -48,7 +51,7 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
 
     std::vector<int> trackIdxs;
     trackIdxs.reserve(eventEndIdx - eventStartIdx);
-    for (int j = eventStartIdx; j < eventEndIdx; ++j) {
+    for (int j = eventStartIdx; j < static_cast<int>(eventEndIdx); ++j) {
       trackIdxs.push_back(j);
     }
     std::shuffle(trackIdxs.begin(), trackIdxs.end(), rng);
@@ -77,5 +80,5 @@ std::set<int> RandomDeduplicationAlgorithm::operator()(
       std::cout << i << "/" << nRanges << "\n";
     }
   }
-  return std::move(uniqueTrackIdxs);
+  return uniqueTrackIdxs;
 }

@@ -1,6 +1,8 @@
 #include "Analysis/FullBestChi2DeduplicationAlgorithm.hpp"
 
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "detail/TVector3Hash.hpp"
 #include "detail/TrackHandle.hpp"
@@ -31,7 +33,7 @@ std::set<int> FullBestChi2DeduplicationAlgorithm::operator()(
     std::unordered_map<TVector3, TrackHandle, TVector3Hash, TVector3Eq>
         clusterMap;
     clusterMap.reserve((eventEndIdx - eventStartIdx) * 5);
-    for (int j = eventStartIdx; j < eventEndIdx; j++) {
+    for (int j = eventStartIdx; j < static_cast<int>(eventEndIdx); j++) {
       m_selectionTree->GetEntry(j);
       for (std::size_t k = 0; k < m_trackHitsGlobal->size(); k++) {
         // Skip the IP measurement shared by all the tracks
@@ -50,7 +52,7 @@ std::set<int> FullBestChi2DeduplicationAlgorithm::operator()(
 
     // Get the unique track indices
     for (const auto &[hit, track] : clusterMap) {
-      const auto &[idx, chi2, magId] = track;
+      const auto &[idx, chi2] = track;
       if (badIdxs.contains(idx)) {
         continue;
       }
@@ -60,5 +62,5 @@ std::set<int> FullBestChi2DeduplicationAlgorithm::operator()(
       std::cout << i << "/" << nRanges << "\n";
     }
   }
-  return std::move(uniqueTrackIdxs);
+  return uniqueTrackIdxs;
 }

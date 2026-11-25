@@ -1,12 +1,17 @@
 #include "Analysis/SimPostprocessor.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "Analysis/FullBestChi2DeduplicationAlgorithm.hpp"
@@ -49,7 +54,7 @@ FileHandle SimPostprocessor::getInFileHandle(
   TFile *file = nullptr;
   TTree *dataTree = nullptr;
   TTree *selectionTree = nullptr;
-  TChain *chainOwner = new TChain(treeName.c_str(), treeName.c_str());
+  TChain *chainOwner = nullptr;
   if (paths.size() == 1) {
     file = new TFile(paths.at(0).c_str());
     dataTree = file->Get<TTree>(treeName.c_str());
@@ -472,11 +477,11 @@ void SimPostprocessor::testClusterSharing(const Options &opt) {
   for (std::size_t i = startIdx; i < endIdx; i++) {
     auto [eventStartIdx, eventEndIdx] = eventRanges.at(i);
 
-    for (int j = eventStartIdx; j < eventEndIdx - 1; j++) {
+    for (int j = eventStartIdx; j < static_cast<int>(eventEndIdx) - 1; j++) {
       selectionTree->GetEntry(j);
       auto hitsJ = *m_trackHitsGlobal;
       auto geoIdsJ = *m_geometryIds;
-      for (int k = j + 1; k < eventEndIdx; k++) {
+      for (int k = j + 1; k < static_cast<int>(eventEndIdx); k++) {
         selectionTree->GetEntry(k);
         auto hitsK = *m_trackHitsGlobal;
         auto geoIdsK = *m_geometryIds;
@@ -490,7 +495,9 @@ void SimPostprocessor::testClusterSharing(const Options &opt) {
               continue;
             }
             if (hitsJ.at(n) == hitsK.at(m)) {
-              throw std::runtime_error("ERR");
+              throw std::runtime_error("Tracks at entries " +
+                                       std::to_string(j) + " and " +
+                                       std::to_string(k) + " share a cluster");
             }
           }
         }

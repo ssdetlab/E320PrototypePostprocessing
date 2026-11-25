@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <utility>
+#include <vector>
+
 #include "TChain.h"
 #include "TFile.h"
 #include "TTree.h"
