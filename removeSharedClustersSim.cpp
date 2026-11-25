@@ -6,7 +6,7 @@ int main() {
 
   opt.inPath =
       "/home/romanurmanov/work/E320/E320Prototype/E320Prototype_analysis/sim/"
-      "alignment/local/sig/misaligned";
+      "test/global/misaligned";
 
   opt.inDataTreeName = "fitted-tracks";
   opt.outDataPath =
@@ -15,10 +15,9 @@ int main() {
   opt.outDataTreeName = "fitted-tracks";
   opt.events = 1e9;
   opt.skip = 0;
-  opt.deduplictionAlgo = SimPostprocessor::DeduplictionAlgorithm::Random;
+  opt.deduplictionAlgo = SimPostprocessor::DeduplictionAlgorithm::FullBestChi2;
 
   postprocessor.removeSharedClusters(opt);
 
   return 0;
 }
-
