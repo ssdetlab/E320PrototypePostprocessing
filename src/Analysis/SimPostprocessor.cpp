@@ -214,6 +214,8 @@ FileHandle SimPostprocessor::getInFileHandle(
 
   dataTree->SetBranchAddress("trueLeaveOneOutHitResiduals",
                              &m_trueLeaveOneOutHitResiduals);
+  dataTree->SetBranchAddress("trueLeaveOneOutAngleResiduals",
+                             &m_trueLeaveOneOutAngleResiduals);
 
   // KF residuals with respect to the measurements
   dataTree->SetBranchAddress("predictedHitResiduals", &m_predictedHitResiduals);
@@ -229,6 +231,8 @@ FileHandle SimPostprocessor::getInFileHandle(
 
   dataTree->SetBranchAddress("leaveOneOutHitResiduals",
                              &m_leaveOneOutHitResiduals);
+  dataTree->SetBranchAddress("leaveOneOutAngleResiduals",
+                             &m_leaveOneOutAngleResiduals);
 
   // KF pulls with respect to the true hits
   dataTree->SetBranchAddress("truePredictedHitPulls", &m_truePredictedHitPulls);
@@ -244,6 +248,8 @@ FileHandle SimPostprocessor::getInFileHandle(
 
   dataTree->SetBranchAddress("trueLeaveOneOutHitPulls",
                              &m_trueLeaveOneOutHitPulls);
+  dataTree->SetBranchAddress("trueLeaveOneOutAnglePulls",
+                             &m_trueLeaveOneOutAnglePulls);
 
   // KF pulls with respect to the measurements
   dataTree->SetBranchAddress("predictedHitPulls", &m_predictedHitPulls);
@@ -255,6 +261,7 @@ FileHandle SimPostprocessor::getInFileHandle(
   dataTree->SetBranchAddress("smoothedAnglePulls", &m_smoothedAnglePulls);
 
   dataTree->SetBranchAddress("leaveOneOutHitPulls", &m_leaveOneOutHitPulls);
+  dataTree->SetBranchAddress("leaveOneOutAnglePulls", &m_leaveOneOutAnglePulls);
 
   // KF states covariances
   dataTree->SetBranchAddress("predictedTrackStateCovs",
