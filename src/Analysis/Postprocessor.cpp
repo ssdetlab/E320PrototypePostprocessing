@@ -322,7 +322,8 @@ void Postprocessor::removeSharedClusters(const Options &opt) {
   switch (opt.deduplictionAlgo) {
     case DeduplictionAlgorithm::Random:
       deduplicationAlgo = std::make_unique<RandomDeduplicationAlgorithm>(
-          selectionTree, m_trackHitsGlobal, m_geometryIds, opt.ipGeoId);
+          selectionTree, m_trackHitsGlobal, m_geometryIds, opt.ipGeoId,
+          opt.seed);
       break;
     case DeduplictionAlgorithm::FullBestChi2:
       deduplicationAlgo = std::make_unique<FullBestChi2DeduplicationAlgorithm>(

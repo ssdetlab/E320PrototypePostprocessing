@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "Analysis/IDeduplicationAlgorithm.hpp"
 #include "TTree.h"
 #include "TVector3.h"
@@ -17,10 +19,11 @@ class RandomDeduplicationAlgorithm : public IDeduplicationAlgorithm {
   /// @param trackHitsGlobal pointer to the global track hit branch address
   /// @param geometryIds pointer to the track hit geometry IDs branch address
   /// @param ipGeoId IP surface geometry ID excluded from the cluster sharing
+  /// @param seed seed of the random number generator
   RandomDeduplicationAlgorithm(TTree* selectionTree,
                                std::vector<TVector3>* trackHitsGlobal,
                                std::vector<std::size_t>* geometryIds,
-                               std::size_t ipGeoId);
+                               std::size_t ipGeoId, std::uint64_t seed);
 
   /// @brief remove shared clusters from a track sample
   ///
@@ -46,4 +49,7 @@ class RandomDeduplicationAlgorithm : public IDeduplicationAlgorithm {
 
   /// IP surface geometry ID
   std::size_t m_ipGeoId = 0;
+
+  /// Seed of the random number generator
+  std::uint64_t m_seed = 0;
 };
