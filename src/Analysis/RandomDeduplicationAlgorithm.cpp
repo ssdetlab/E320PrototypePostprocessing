@@ -1,6 +1,5 @@
 #include "Analysis/RandomDeduplicationAlgorithm.hpp"
 
-#include <chrono>
 #include <cstddef>
 #include <iostream>
 #include <random>
@@ -11,20 +10,19 @@
 
 RandomDeduplicationAlgorithm::RandomDeduplicationAlgorithm(
     TTree *selectionTree, std::vector<TVector3> *trackHitsGlobal,
-    std::vector<std::size_t> *geometryIds, std::size_t ipGeoId)
+    std::vector<std::size_t> *geometryIds, std::size_t ipGeoId,
+    std::uint64_t seed)
     : m_selectionTree(selectionTree),
       m_trackHitsGlobal(trackHitsGlobal),
       m_geometryIds(geometryIds),
-      m_ipGeoId(ipGeoId) {}
+      m_ipGeoId(ipGeoId),
+      m_seed(seed) {}
 
 std::set<int> RandomDeduplicationAlgorithm::operator()(
     std::size_t startIdx, std::size_t endIdx,
     const std::vector<std::pair<std::uint32_t, std::uint32_t>> &eventRanges)
     const {
-  std::uniform_int_distribution<> uniform(0, 1);
-  std::mt19937_64 rng;
-  rng.seed(
-      std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  std::mt19937_64 rng(m_seed);
 
   std::set<int> uniqueTrackIdxs;
   std::size_t nRanges = eventRanges.size();

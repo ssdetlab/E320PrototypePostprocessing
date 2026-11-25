@@ -17,6 +17,7 @@ int main() {
   opt.skip = 0;
   opt.deduplictionAlgo = SimPostprocessor::DeduplictionAlgorithm::FullBestChi2;
   opt.ipGeoId = 8;
+  opt.seed = 0;
 
   postprocessor.removeSharedClusters(opt);
 

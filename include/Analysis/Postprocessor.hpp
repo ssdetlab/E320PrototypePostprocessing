@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -43,6 +44,8 @@ class Postprocessor {
     DeduplictionAlgorithm deduplictionAlgo;
     /// IP surface geometry ID excluded from the cluster sharing
     std::size_t ipGeoId;
+    /// Seed of the random deduplication algorithm
+    std::uint64_t seed;
   };
 
   /// @brief Run shared clusters removal
