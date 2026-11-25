@@ -41,6 +41,8 @@ class SimPostprocessor {
     std::size_t skip;
     /// Deduplication algorithm
     DeduplictionAlgorithm deduplictionAlgo;
+    /// IP surface geometry ID excluded from the cluster sharing
+    std::size_t ipGeoId;
   };
 
   /// @brief Run shared clusters removal

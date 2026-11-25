@@ -15,8 +15,12 @@ class RandomDeduplicationAlgorithm : public IDeduplicationAlgorithm {
   ///
   /// @param selectionTree TTree pointer with track selection criteria branches
   /// @param trackHitsGlobal pointer to the global track hit branch address
+  /// @param geometryIds pointer to the track hit geometry IDs branch address
+  /// @param ipGeoId IP surface geometry ID excluded from the cluster sharing
   RandomDeduplicationAlgorithm(TTree* selectionTree,
-                               std::vector<TVector3>* trackHitsGlobal);
+                               std::vector<TVector3>* trackHitsGlobal,
+                               std::vector<std::size_t>* geometryIds,
+                               std::size_t ipGeoId);
 
   /// @brief remove shared clusters from a track sample
   ///
@@ -36,4 +40,10 @@ class RandomDeduplicationAlgorithm : public IDeduplicationAlgorithm {
 
   /// Measurement hits in the global frame
   std::vector<TVector3>* m_trackHitsGlobal = nullptr;
+
+  /// Geometry ids of the track hits
+  std::vector<std::size_t>* m_geometryIds = nullptr;
+
+  /// IP surface geometry ID
+  std::size_t m_ipGeoId = 0;
 };

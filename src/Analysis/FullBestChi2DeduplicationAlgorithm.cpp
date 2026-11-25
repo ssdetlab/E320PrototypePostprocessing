@@ -7,10 +7,13 @@
 
 FullBestChi2DeduplicationAlgorithm::FullBestChi2DeduplicationAlgorithm(
     TTree *selectionTree, double *chi2Smoothed,
-    std::vector<TVector3> *trackHitsGlobal)
+    std::vector<TVector3> *trackHitsGlobal,
+    std::vector<std::size_t> *geometryIds, std::size_t ipGeoId)
     : m_selectionTree(selectionTree),
       m_chi2Smoothed(chi2Smoothed),
-      m_trackHitsGlobal(trackHitsGlobal) {}
+      m_trackHitsGlobal(trackHitsGlobal),
+      m_geometryIds(geometryIds),
+      m_ipGeoId(ipGeoId) {}
 
 std::set<int> FullBestChi2DeduplicationAlgorithm::operator()(
     std::size_t startIdx, std::size_t endIdx,
@@ -30,8 +33,12 @@ std::set<int> FullBestChi2DeduplicationAlgorithm::operator()(
     clusterMap.reserve((eventEndIdx - eventStartIdx) * 5);
     for (int j = eventStartIdx; j < eventEndIdx; j++) {
       m_selectionTree->GetEntry(j);
-      for (const auto &hit : *m_trackHitsGlobal) {
-        auto &mapEntry = clusterMap[hit];
+      for (std::size_t k = 0; k < m_trackHitsGlobal->size(); k++) {
+        // Skip the IP measurement shared by all the tracks
+        if (m_geometryIds->at(k) == m_ipGeoId) {
+          continue;
+        }
+        auto &mapEntry = clusterMap[m_trackHitsGlobal->at(k)];
         if (mapEntry.chi2 > *m_chi2Smoothed) {
           badIdxs.insert(mapEntry.treeIdx);
           mapEntry = {j, *m_chi2Smoothed};
